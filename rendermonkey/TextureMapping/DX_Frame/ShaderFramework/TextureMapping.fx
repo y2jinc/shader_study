@@ -71,6 +71,7 @@ float4 ps_main(PS_INPUT Input) : COLOR0
    float4 albedo = tex2D(DiffuseSampler, Input.mTexCoord);
    return albedo.rgba;
 }
+
 //--------------------------------------------------------------//
 // Technique Section for Effect Workspace.Effect Group 1.TextureMapping
 //--------------------------------------------------------------//

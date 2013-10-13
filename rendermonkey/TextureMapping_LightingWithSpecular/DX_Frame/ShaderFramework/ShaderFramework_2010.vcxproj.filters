@@ -71,9 +71,6 @@
     <ClCompile Include="DXUT\Optional\SDKmisc.cpp">
       <Filter>DXUT</Filter>
     </ClCompile>
-    <None Include="TextureMapping.fx">
-      <Filter>Shaders</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ShaderFramework.cpp" />
@@ -87,5 +84,8 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="TextureMappingWithSpecular.fx">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -90,12 +90,30 @@ VS_OUTPUT Effect_Group_1_TextureMapping_LightingWithSpecular_Pass_0_Vertex_Shade
 
 texture DiffuseMap_Tex
 <
-   string ResourceName = "C:\\Program Files (x86)\\AMD\\RenderMonkey 1.82\\Examples\\Media\\Textures\\Earth.jpg";
+   string ResourceName = "C:\\Program Files (x86)\\AMD\\RenderMonkey 1.82\\Examples\\Media\\Textures\\Fieldstone.tga";
 >;
 sampler2D DiffuseSampler = sampler_state
 {
    Texture = (DiffuseMap_Tex);
 };
+texture SpecularMap_Tex
+<
+   string ResourceName = ".\\fieldstone_SM.tga";
+>;
+sampler2D SpecularSampler = sampler_state
+{
+   Texture = (SpecularMap_Tex);
+};
+
+float3 gLightColor
+<
+   string UIName = "gLightColor";
+   string UIWidget = "Numeric";
+   bool UIVisible =  false;
+   float UIMin = -1.00;
+   float UIMax = 1.00;
+> = float3( 0.70, 0.70, 1.00 );
+
 struct PS_INPUT
 {
    float2 mTexCoord : TEXCOORD0;
@@ -106,23 +124,25 @@ struct PS_INPUT
 
 float4 Effect_Group_1_TextureMapping_LightingWithSpecular_Pass_0_Pixel_Shader_ps_main(PS_INPUT Input) : COLOR0
 {
-   float3 diffuse = tex2D(DiffuseSampler, Input.mTexCoord);
-   float3 diffuseLit = saturate(Input.mDiffuse);
+   float3 albedo = tex2D(DiffuseSampler, Input.mTexCoord);
+   float3 diffuse = gLightColor * albedo.rgb * saturate(Input.mDiffuse);
    
    float3 reflection = normalize(Input.mReflection);
    float3 ViewDir = normalize(Input.mViewDir);
    float3 specular = 0;
    if ( diffuse.x > 0 )
    {
-      specular = saturate(dot(reflection, -ViewDir));
+      specular = dot(reflection, -ViewDir);
       specular = pow(specular, 20);
+      
+      float4 specularIntensity = tex2D(SpecularSampler, Input.mTexCoord);
+      specular *= gLightColor * specularIntensity.rgb;
+      
    }
    
-   float3 ambient = float3(0.1f, 0.1f, 0.1f);
-   return float4(ambient+specular+(diffuse*diffuseLit),1);
-   //return float4(ambient+specular+(diffuseLit),1);
-//   return float4(specular+(,1);
-}
+   float3 ambient = float3(0.1f, 0.1f, 0.1f) * albedo;
+   return float4(ambient+specular+diffuse, 1);
+   }
 //--------------------------------------------------------------//
 // Technique Section for Effect Group 1
 //--------------------------------------------------------------//

@@ -21,8 +21,11 @@
 #define NEAR_PLANE			1
 #define FAR_PLANE			10000
 
-#define SHADER_FILE_NAME	L"TextureMapping.fx"
+#define SHADER_FILE_NAME	L"TextureMappingWithSpecular.fx"
 
+
+D3DXVECTOR4				gWorldLightPosition(500.0f, 500.0f, -500.f, 1.0f);
+D3DXVECTOR4				gWorldCameraPosition(0.f, 0.f, -200.f, 1.0f);
 
 // D3D 
 LPDIRECT3D9				gpD3D			= NULL;
@@ -32,7 +35,8 @@ ID3DXFont*				gpFont			= NULL;
 LPD3DXMESH				gpSphere		= NULL;
 ID3DXEffect*			gpShader		= NULL;
 
-LPDIRECT3DTEXTURE9		gpEarthDM		= NULL;
+LPDIRECT3DTEXTURE9		gpFieldStoneDM		= NULL;
+LPDIRECT3DTEXTURE9		gpFieldStoneSM		= NULL;
 
 LPD3DXEFFECT LoadShader(IDirect3DDevice9* pd3dDevice)
 {
@@ -77,7 +81,17 @@ LPD3DXMESH LoadModel(const TCHAR* filename)
 
 HRESULT LoadTexture()
 {
-	return D3DXCreateTextureFromFile(gpD3DDevice, L"earth.jpg", &gpEarthDM);
+	if ( FAILED( D3DXCreateTextureFromFile(gpD3DDevice, L"FieldStone.bmp", &gpFieldStoneDM)) )
+	{
+		return S_FALSE;
+	}
+
+	if ( FAILED(D3DXCreateTextureFromFile(gpD3DDevice, L"FieldStone_SM.tga", &gpFieldStoneSM)) )
+	{
+		return S_FALSE;
+	}
+
+	return S_OK;
 }
 float gRotationY = 0;
 void RenderScene()
@@ -93,7 +107,7 @@ void RenderScene()
 	D3DXMatrixRotationY(&matWorld, gRotationY);
 
 	D3DXMATRIXA16 matView;
-	D3DXVECTOR3 vEyePt(0.f, 0.f, -200.f);
+	D3DXVECTOR3 vEyePt(gWorldCameraPosition.x, gWorldCameraPosition.y, gWorldCameraPosition.z);
 	D3DXVECTOR3 vLookatPt(0.f, 0.f, 0.f);
 	D3DXVECTOR3 vUpVec( 0.f, 1.f, 0.f);
 	D3DXMatrixLookAtLH( &matView, &vEyePt, &vLookatPt, &vUpVec);
@@ -111,7 +125,16 @@ void RenderScene()
 	gpShader->SetMatrix(handle, &matProjection);
 
 	handle = gpShader->GetParameterByName(NULL, "DiffuseMap_Tex");
-	gpShader->SetTexture(handle, gpEarthDM);
+	gpShader->SetTexture(handle, gpFieldStoneDM);
+
+	handle = gpShader->GetParameterByName(NULL, "SpecularMap_Tex");
+	gpShader->SetTexture(handle, gpFieldStoneSM);
+
+	handle = gpShader->GetParameterByName(NULL, "gLightPosition");
+	gpShader->SetValue(handle, &gWorldLightPosition, sizeof(D3DXVECTOR4));
+
+	handle = gpShader->GetParameterByName(NULL, "gCameraPosition");
+	gpShader->SetValue(handle, &gWorldCameraPosition, sizeof(D3DXVECTOR4));
 
 	UINT nPass = 0;
 	gpShader->Begin(&nPass, NULL);
@@ -263,7 +286,8 @@ void CALLBACK OnD3D9LostDevice( void* pUserContext )
 //--------------------------------------------------------------------------------------
 void CALLBACK OnD3D9DestroyDevice( void* pUserContext )
 {
-	SAFE_RELEASE(gpEarthDM);
+	SAFE_RELEASE(gpFieldStoneDM);
+	SAFE_RELEASE(gpFieldStoneSM);
 	SAFE_RELEASE(gpFont);
 	SAFE_RELEASE(gpSphere);
 	SAFE_RELEASE(gpShader);
