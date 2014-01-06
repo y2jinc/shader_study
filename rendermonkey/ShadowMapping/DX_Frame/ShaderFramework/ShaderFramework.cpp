@@ -25,7 +25,7 @@
 
 
 D3DXVECTOR4				gWorldLightPosition(500.0f, 500.0f, -500.f, 1.0f);
-D3DXVECTOR4				gWorldCameraPosition(0.f, 0.f, -200.f, 1.0f);
+D3DXVECTOR4				gWorldCameraPosition(0.f, 0.f, -300.f, 1.0f);
 
 // D3D 
 LPDIRECT3D9				gpD3D			= NULL;
@@ -43,7 +43,7 @@ D3DXVECTOR4				gDiscColor(0,1,1,1);
 
 // 그림자맵 텍스쳐
 LPDIRECT3DTEXTURE9		gpShadowRenderTarget = NULL;
-LPDIRECT3DTEXTURE9		gpShadowDepthStencil = NULL;
+LPDIRECT3DSURFACE9		gpShadowDepthStencil = NULL;
 
 LPDIRECT3DTEXTURE9		gpFieldStoneDM		= NULL;
 LPDIRECT3DTEXTURE9		gpFieldStoneSM		= NULL;
@@ -138,6 +138,11 @@ void RenderScene()
 			gRotationY -= 2 * PI;
 		}
 		D3DXMatrixRotationY(&matTorusWorld, gRotationY);
+
+		D3DXMATRIXA16 matTrans;
+		D3DXMatrixTranslation(&matTrans, 0, 0, 0);
+
+		D3DXMatrixMultiply( &matTorusWorld, &matTorusWorld, &matTrans);
 	}
 
 	// 디스크의 월드행렬을 만든다.
@@ -147,7 +152,7 @@ void RenderScene()
 		D3DXMatrixScaling(&matScale, 2,2,2);
 
 		D3DXMATRIXA16 matTrans;
-		D3DXMatrixTranslation(&matTrans, 0, -40, 0);
+		D3DXMatrixTranslation(&matTrans, -30, -50, 50);
 
 		D3DXMatrixMultiply( &matDiscWorld, &matScale, &matTrans);
 	}
@@ -171,16 +176,7 @@ void RenderScene()
 		pShadowSurface = NULL;
 	}
 
-	//if ( SUCCEEDED( gpShadowDepthStencil->GetSurfaceLevel(0, &pShadowSurface)) )
-	//{
-	//	gpD3DDevice->SetDepthStencilSurface(pShadowSurface);
-	//	pShadowSurface->Release();
-	//	pShadowSurface = NULL;
-	//}
-
 	gpD3DDevice->SetDepthStencilSurface((IDirect3DSurface9*)gpShadowDepthStencil);
-
-	
 
 	// 프레임에 그렸던 그림자 정보를 지운다.
 	gpD3DDevice->Clear( 0, NULL, (D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER), 0xFFFFFFFF, 1.0f, 0 );
@@ -219,7 +215,7 @@ void RenderScene()
 
 	// 하드웨어 백버퍼 / 깊이 버퍼를 사용한다.
 	gpD3DDevice->SetRenderTarget(0, pHWbackBuffer);
-	gpD3DDevice->SetDepthStencilSurface(pHWbackBuffer);
+	gpD3DDevice->SetDepthStencilSurface(pHWDepthStencilBuffer);
 
 	pHWbackBuffer->Release();
 	pHWbackBuffer = NULL;
@@ -229,6 +225,9 @@ void RenderScene()
 	// 그림자 입히기 세이더 전역변수들을 설정
 	handle = gpApplyShadowShader->GetParameterByName(NULL, "gWorldMatrix");
 	gpApplyShadowShader->SetMatrix(handle, &matTorusWorld);
+
+	handle = gpApplyShadowShader->GetParameterByName(NULL, "gViewProjectionMatrix");
+	gpApplyShadowShader->SetMatrix(handle, &matViewProjection);
 
 	handle = gpApplyShadowShader->GetParameterByName(NULL, "gLightViewMatrix");
 	gpApplyShadowShader->SetMatrix(handle, &matLightView);
@@ -271,11 +270,6 @@ void RenderScene()
 		}
 	}
 	gpApplyShadowShader->End();
-
-
-
-
-
 }
 
 void RenderInfo()
@@ -372,7 +366,7 @@ HRESULT CALLBACK OnD3D9CreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURF
 					D3DMULTISAMPLE_NONE,	// 안티알리어싱 사용안함.
 					0,				// 멀티샘플 품질
 					TRUE,			// 깊이 버퍼를 바꿀 때, 그 안에 있던 내용을 보존하지 않는다.
-					(IDirect3DSurface9 **)&gpShadowDepthStencil, 
+					&gpShadowDepthStencil, 
 					NULL
 					)) )
 	{
@@ -403,6 +397,7 @@ HRESULT CALLBACK OnD3D9ResetDevice( IDirect3DDevice9* pd3dDevice, const D3DSURFA
 //--------------------------------------------------------------------------------------
 void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext )
 {
+	_asm nop;
 }
 
 
@@ -456,11 +451,11 @@ void CALLBACK OnD3D9LostDevice( void* pUserContext )
 void CALLBACK OnD3D9DestroyDevice( void* pUserContext )
 {
 	SAFE_RELEASE(gpCreateShadowShader);
+	SAFE_RELEASE(gpApplyShadowShader);
 	SAFE_RELEASE(gpDisc);
 	SAFE_RELEASE(gpTorus);
 	SAFE_RELEASE(gpShadowRenderTarget);
 	SAFE_RELEASE(gpShadowDepthStencil);
-	SAFE_RELEASE(gpTorus);
 
 	SAFE_RELEASE(gpFont);
 	
