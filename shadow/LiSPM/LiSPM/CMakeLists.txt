@@ -1,0 +1,11 @@
+PROJECT (LispSM C)
+
+ADD_EXECUTABLE(LispSM DataTypes.c LispSM.c Main.c MathStuff.c SceneData.c DataTypes.h Main.h MathStuff.h SceneData.h)
+
+IF (WIN32)
+  TARGET_LINK_LIBRARIES(LispSM ${CMAKE_CURRENT_SOURCE_DIR}/GL/glew32.lib)
+  TARGET_LINK_LIBRARIES(LispSM ${CMAKE_CURRENT_SOURCE_DIR}/GL/glut32.lib)
+ELSE (WIN32)
+  TARGET_LINK_LIBRARIES(LispSM glew)
+  TARGET_LINK_LIBRARIES(LispSM glut)
+ENDIF (WIN32)
