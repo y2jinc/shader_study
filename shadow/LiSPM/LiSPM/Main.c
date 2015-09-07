@@ -34,14 +34,16 @@ int xLightBegin, yLightBegin, movingLight = 0;
 
 const GLfloat globalAmbient[] = {0.5, 0.5, 0.5, 1.0};
 
-enum TView {
+enum TView 
+{
 	EYE,
 	EYE_SHADOWED,
 	LIGHT,
 	DEPTH_TEX
 } view;
 
-void prepareDepthTextureState(void) {
+void prepareDepthTextureState(void) 
+{
 	const int border = 0;
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(border,border,depthMapSize-border*2,depthMapSize-border*2);
@@ -51,19 +53,25 @@ void prepareDepthTextureState(void) {
 	glDisable(GL_LIGHTING);
 	glEnable(GL_ALPHA_TEST);
 	glDisable(GL_FOG);
-	if(usePolygonOffset) {
+	
+	if(usePolygonOffset) 
+	{
 		glEnable(GL_POLYGON_OFFSET_FILL);
 	}
-	else {
+	else 
+	{
 		glCullFace(GL_FRONT);
 	}
 }
 
-void unprepareDepthTextureState(void) {
-	if(usePolygonOffset) {
+void unprepareDepthTextureState(void) 
+{
+	if(usePolygonOffset) 
+	{
 		glDisable(GL_POLYGON_OFFSET_FILL);
 	}
-	else {
+	else 
+	{
 		glCullFace(GL_BACK);
 	}
 	glDisable(GL_ALPHA_TEST);
@@ -75,12 +83,14 @@ void unprepareDepthTextureState(void) {
 	glScissor(0,0,winWidth,winHeight);
 }
 
-void saveToDepthTexture(void) {
+void saveToDepthTexture(void) 
+{
 	glBindTexture(GL_TEXTURE_2D,depthTexture);
 	glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0,0,depthMapSize,depthMapSize);
 }
 
-void prepareShadowMapping(void) {
+void prepareShadowMapping(void) 
+{
 	const GLdouble x[] = {1.0, 0.0, 0.0, 0.0};
 	const GLdouble y[] = {0.0, 1.0, 0.0, 0.0};
 	const GLdouble z[] = {0.0, 0.0, 1.0, 0.0};
@@ -123,7 +133,8 @@ void prepareShadowMapping(void) {
 	glActiveTextureARB(GL_TEXTURE0);
 }
 
-void unprepareShadowMapping(void) {
+void unprepareShadowMapping(void) 
+{
 	glActiveTextureARB(GL_TEXTURE1);
 	//Disable textures and texgen
 	glMatrixMode(GL_TEXTURE);
@@ -137,7 +148,9 @@ void unprepareShadowMapping(void) {
 	glDisable(GL_TEXTURE_GEN_Q);
 	glActiveTextureARB(GL_TEXTURE0);
 }
-void setupLightView(void) {
+
+void setupLightView(void) 
+{
 	updateLightMtx();
 
 	glMatrixMode(GL_PROJECTION);
@@ -147,14 +160,16 @@ void setupLightView(void) {
 	glLoadMatrixd(lightView);
 }
 
-void updateEyeMtx(void) {
+void updateEyeMtx(void) 
+{
 	const Vector3 up = {0.0, 1.0, 0.0};
 	look(eyeView,eyePos,viewDir,up);
 	mult(eyeProjView,eyeProjection,eyeView); //eyeProjView = eyeProjection*eyeView
 	invert(invEyeProjView,eyeProjView); //invert matrix
 }
 
-void setupEyeView(void) {
+void setupEyeView(void) 
+{
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixd(eyeProjection);
 
@@ -162,14 +177,16 @@ void setupEyeView(void) {
 	glLoadMatrixd(eyeView);
 }
 
-void drawEyeView(void) {
+void drawEyeView(void) 
+{
 	Vector4 lightPos;
 	setVector4(lightPos, -lightDir[0], -lightDir[1], -lightDir[2], 0.0);
 	glLightfv(GL_LIGHT0,GL_POSITION,lightPos);
 	drawScene();
 }
 
-void drawLightView(void) {
+void drawLightView(void) 
+{
 	Vector4 lightPos;
 	Vector3 startPos;
 	Vector3x8 v;
@@ -207,7 +224,8 @@ void drawLightView(void) {
 	glEnable(GL_FOG);
 }
 
-void generateDepthTexture(void) {
+void generateDepthTexture(void) 
+{
 	setupLightView();
 	prepareDepthTextureState();	
 	glDisable(GL_LIGHTING);
@@ -217,7 +235,8 @@ void generateDepthTexture(void) {
 	unprepareDepthTextureState();
 }
 
-void drawDepthTexture(void) {
+void drawDepthTexture(void) 
+{
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,depthTexture);
@@ -241,18 +260,22 @@ void drawDepthTexture(void) {
 	glDisable(GL_TEXTURE_2D);
 }
 
-void output(const int x, const int y, const char *string) {
-	if(string != 0) {
+void output(const int x, const int y, const char *string) 
+{
+	if(string != 0) 
+	{
 		int len, i;
 		glRasterPos2f(x,y);
 		len = (int) strlen(string);
-		for (i = 0; i < len; i++) {
+		for (i = 0; i < len; i++) 
+		{
 			glutBitmapCharacter(GLUT_BITMAP_8_BY_13,string[i]);
 		}
 	}
 }
 
-void begin2D(void) {
+void begin2D(void) 
+{
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 
@@ -266,7 +289,8 @@ void begin2D(void) {
 }
 
 
-void end2D(void) {
+void end2D(void) 
+{
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
@@ -275,7 +299,8 @@ void end2D(void) {
 	glEnable(GL_DEPTH_TEST);
 }
 
-void drawHelpMessage(void) {
+void drawHelpMessage(void) 
+{
 	const char *message[] = {
 		"Help information",
 		"",
@@ -309,10 +334,14 @@ void drawHelpMessage(void) {
 	glDisable(GL_BLEND);
 
 	glColor3f(1.0,1.0,1.0);
-	for(i = 0; message[i] != 0; i++) {
-		if(message[i][0] == '\0') {
+	for(i = 0; message[i] != 0; i++) 
+	{
+		if(message[i][0] == '\0') 
+		{
 			y += 7;
-		} else {
+		} 
+		else 
+		{
 			output(x,y,message[i]);
 			y += 14;
 		}
@@ -320,7 +349,8 @@ void drawHelpMessage(void) {
 
 }
 
-void display(void) {
+void display(void) 
+{
 	char *msg1 = 0, *msg2 = 0, *msg3 = 0;
 	updateEyeMtx(); //bring eye modelview matrix up-to-date
 	if(useLispSM) {
@@ -381,7 +411,8 @@ void display(void) {
 }
 
 #pragma warning( disable : 4100 )
-void keyboard(const unsigned char c, const int x, const int y) {
+void keyboard(const unsigned char c, const int x, const int y) 
+{
 	switch(c) {
 	case 27:
 		exit(0);
